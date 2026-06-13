@@ -24,6 +24,8 @@
 </head>
 <body>
 <div id="toast-container" class="toast-container"></div>
+<button class="mobile-nav-toggle" id="mobile-nav-toggle" onclick="toggleSidebar()" aria-label="Open menu">☰</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 <div class="app-shell">
   <nav class="sidebar">
     <div class="sidebar-logo">
@@ -323,6 +325,23 @@ function buildFlags() {
     </div>
   `).join('') + '<div class="empty-state" style="padding:24px 0"><p style="color:var(--grey-mid);font-size:0.84rem">No other flags at this time.</p></div>';
 }
+</script>
+
+<script>
+function toggleSidebar() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+// Close sidebar on nav item click (mobile)
+document.querySelectorAll('.nav-item').forEach(function(el) {
+  el.addEventListener('click', function() {
+    if (window.innerWidth <= 768) closeSidebar();
+  });
+});
 </script>
 </body>
 </html>

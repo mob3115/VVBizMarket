@@ -6,7 +6,7 @@
 <title>V+V — Seller Dashboard</title>
 <link rel="stylesheet" href="app.css">
 <style>
-.stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 28px; }
+/* stats-grid: moved to app.css */
 .listing-wizard { max-width: 680px; }
 .wizard-section { background:var(--black-card); border:1px solid var(--grey-border); border-radius:var(--radius-md); margin-bottom:16px; overflow:hidden; }
 .wizard-section-header { padding:16px 22px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:var(--transition); }
@@ -58,6 +58,8 @@
 </head>
 <body>
 <div id="toast-container" class="toast-container"></div>
+<button class="mobile-nav-toggle" id="mobile-nav-toggle" onclick="toggleSidebar()" aria-label="Open menu">☰</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 <div class="app-shell">
   <nav class="sidebar">
     <div class="sidebar-logo">
@@ -675,6 +677,23 @@ function sellerSignNDA() {
   toast('NDA signed — full details for ' + (b ? b.name : 'this buyer') + ' are now unlocked! 🔓', 'success');
   document.getElementById('seller-nda-sig').value = '';
 }
+</script>
+
+<script>
+function toggleSidebar() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+// Close sidebar on nav item click (mobile)
+document.querySelectorAll('.nav-item').forEach(function(el) {
+  el.addEventListener('click', function() {
+    if (window.innerWidth <= 768) closeSidebar();
+  });
+});
 </script>
 </body>
 </html>

@@ -477,3 +477,35 @@
 </script>
 </body>
 </html>
+<!-- INJECTED: mobile responsive styles -->
+<style>
+@media (max-width: 768px) {
+  body { align-items: flex-start; padding: 0; }
+  .auth-split {
+    flex-direction: column;
+    border-radius: 0;
+    min-height: 100vh;
+    max-width: 100%;
+    border: none;
+    box-shadow: none;
+  }
+  .auth-brand { display: none; }
+  .auth-panel {
+    width: 100% !important;
+    padding: 36px 24px 40px;
+    flex: 1;
+  }
+  .onboarding-overlay { padding: 0; align-items: flex-end; }
+  .onboarding-card {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding: 28px 20px;
+    max-height: 95vh;
+  }
+  .values-grid { grid-template-columns: repeat(2, 1fr); }
+  .role-selector { gap: 8px; }
+}
+@media (max-width: 480px) {
+  .auth-panel { padding: 28px 18px 32px; }
+  .demo-logins { padding: 12px; }
+}
+</style>
