@@ -358,6 +358,8 @@ const BUYERS = [
     values: ["Community impact", "Employee ownership", "Sustainability"],
     valuesStatement: "I've spent my career building programs that actually move the needle on economic mobility. I want to run a business that does the same thing, just with a sustainable model underneath.",
     score: 91,
+    liked: false,
+    passed: false,
   },
   {
     id: "b2",
@@ -373,6 +375,8 @@ const BUYERS = [
     values: ["Long-term value creation", "Operational excellence", "Employee retention"],
     valuesStatement: "I've seen what bad PE looks like from the inside. I'm building something different — a hold period measured in decades, not exit multiples.",
     score: 84,
+    liked: false,
+    passed: false,
   },
   {
     id: "b3",
@@ -388,6 +392,8 @@ const BUYERS = [
     values: ["Clinical excellence", "Patient dignity", "Community trust"],
     valuesStatement: "Healthcare businesses are only as good as the people delivering care. I buy culture, not just numbers.",
     score: 87,
+    liked: false,
+    passed: false,
   },
   {
     id: "b4",
@@ -403,6 +409,8 @@ const BUYERS = [
     values: ["Skilled trades respect", "Team loyalty", "Operational integrity"],
     valuesStatement: "I grew up watching my dad treat his employees like family. That's the only kind of business I want to run.",
     score: 78,
+    liked: false,
+    passed: false,
   },
   {
     id: "b5",
@@ -418,6 +426,8 @@ const BUYERS = [
     values: ["Creative excellence", "Brand integrity", "Client relationships"],
     valuesStatement: "I'm not looking to buy a revenue stream. I'm looking for a business that has a genuine point of view and a founder who cares enough to want it in the right hands.",
     score: 79,
+    liked: false,
+    passed: false,
   },
   {
     id: "b6",
@@ -433,6 +443,8 @@ const BUYERS = [
     values: ["Client stewardship", "Professional integrity", "Team development"],
     valuesStatement: "The most valuable thing in professional services is the trust clients extend to their advisors. I look for practices where that trust has been earned honestly.",
     score: 76,
+    liked: false,
+    passed: false,
   },
   {
     id: "b7",
@@ -448,6 +460,8 @@ const BUYERS = [
     values: ["Economic mobility", "Evidence-based outcomes", "Equity in education"],
     valuesStatement: "The EdTech graveyard is full of companies that optimized for engagement over outcomes. I want to own something that's honest about what it delivers.",
     score: 83,
+    liked: false,
+    passed: false,
   },
   {
     id: "b8",
@@ -463,6 +477,8 @@ const BUYERS = [
     values: ["Integrity", "Service", "Long-term accountability"],
     valuesStatement: "In the military, your reputation follows you everywhere. I want to run a business that operates the same way.",
     score: 62,
+    liked: false,
+    passed: false,
   },
   {
     id: "b9",
@@ -478,6 +494,8 @@ const BUYERS = [
     values: ["Authentic craft", "Community gathering", "Sustainability"],
     valuesStatement: "I've spent my career making other people's concepts successful. Now I want to steward something that already has a soul.",
     score: 74,
+    liked: false,
+    passed: false,
   },
   {
     id: "b10",
@@ -493,6 +511,8 @@ const BUYERS = [
     values: ["Long-term stewardship", "Fair dealing", "Value creation"],
     valuesStatement: "I've structured enough bad deals to know what the good ones look like. The best acquisitions are the ones where the seller sleeps well after closing.",
     score: 72,
+    liked: false,
+    passed: false,
   },
   {
     id: "b11",
@@ -508,6 +528,8 @@ const BUYERS = [
     values: ["Editorial independence", "Reader trust", "Diverse voices"],
     valuesStatement: "I believe independent media is one of the most important businesses anyone can own right now. I'm looking for something that has protected its integrity and wants to keep doing so.",
     score: 65,
+    liked: false,
+    passed: false,
   },
   {
     id: "b12",
@@ -523,6 +545,8 @@ const BUYERS = [
     values: ["Compassionate care", "Community trust", "Family business values"],
     valuesStatement: "We want to build something we're proud of together. We're not looking for passive income — we want to show up every day for people who are counting on us.",
     score: 80,
+    liked: false,
+    passed: false,
   },
 ];
 
