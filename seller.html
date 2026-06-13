@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V+V — Seller Dashboard</title>
+<link rel="stylesheet" href="app.css">
+<style>
+.listing-wizard { max-width: 680px; }
+.wizard-section {
+  background: var(--black-card);
+  border: 1px solid var(--grey-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.wizard-section-header {
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.wizard-section-header:hover { background: var(--black-hover); }
+.wizard-section-title {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 0.92rem; font-weight: 600; color: var(--white);
+}
+.wizard-step-num {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: var(--white);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.wizard-section-body { padding: 0 22px 22px; display: none; }
+.wizard-section-body.open { display: block; }
+.wizard-chevron { color: var(--grey-dark); transition: transform 0.2s; }
+.wizard-chevron.open { transform: rotate(180deg); }
+
+.anon-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+.anon-opt {
+  border: 1px solid var(--grey-border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: var(--transition);
+}
+.anon-opt:hover { border-color: var(--orange); }
+.anon-opt.selected { border-color: var(--orange); background: var(--orange-faint); }
+.anon-opt .anon-icon { font-size: 1.5rem; margin-bottom: 6px; }
+.anon-opt .anon-name { font-size: 0.82rem; font-weight: 600; color: var(--white); }
+.anon-opt .anon-desc { font-size: 0.68rem; color: var(--grey-dark); margin-top: 4px; line-height: 1.4; }
+
+.interest-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px;
+  background: var(--black-card);
+  border: 1px solid var(--grey-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.interest-card:hover { border-color: var(--orange); background: var(--orange-faint); }
+.interest-status {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--success);
+  flex-shrink: 0;
+}
+.interest-status.pending { background: var(--warning); }
+
+.analytics-card {
+  background: var(--black-card);
+  border: 1px solid var(--grey-border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+}
+.spark-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 60px;
+  margin-top: 12px;
+}
+.spark-bar-item {
+  flex: 1;
+  background: var(--orange-faint);
+  border-radius: 3px 3px 0 0;
+  border: 1px solid rgba(160,85,0,0.2);
+  transition: var(--transition);
+  cursor: default;
+}
+.spark-bar-item:hover { background: var(--orange); }
+
+.vault-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  background: var(--black);
+  border: 1px solid var(--grey-border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+}
+.vault-icon { font-size: 1.2rem; }
+.vault-name { font-size: 0.86rem; color: var(--white); font-weight: 500; }
+.vault-meta { font-size: 0.72rem; color: var(--grey-dark); }
+</style>
+</head>
+<body>
+<div id="toast-container" class="toast-container"></div>
+
+<div class="app-shell">
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="wordmark">V<span style="color:var(--orange-light)">+</span>V</div>
+      <div class="tagline">Business Marketplace</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Seller</div>
+      <div class="nav-item active" onclick="showSection('dashboard')" id="nav-dashboard">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showSection('listing')" id="nav-listing">
+        <span class="nav-icon">🏢</span> My Listing
+      </div>
+      <div class="nav-item" onclick="showSection('interests')" id="nav-interests">
+        <span class="nav-icon">👁</span> Buyer Interest
+        <span class="nav-badge">4</span>
+      </div>
+      <div class="nav-item" onclick="showSection('vault')" id="nav-vault">
+        <span class="nav-icon">🔒</span> Document Vault
+      </div>
+      <div class="nav-item" onclick="showSection('chat')" id="nav-chat">
+        <span class="nav-icon">💬</span> Messages
+        <span class="nav-badge">2</span>
+      </div>
+      <div class="nav-section-label" style="margin-top:12px">Account</div>
+      <div class="nav-item" onclick="showSection('subscription')" id="nav-subscription">
+        <span class="nav-icon">⭐</span> Upgrade Plan
+      </div>
+      <div class="nav-item" onclick="switchToBuyer()">
+        <span class="nav-icon">↔</span> Buyer Mode
+      </div>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">MD</div>
+      <div class="user-info">
+        <div class="user-name" id="user-name">Marcus Delray</div>
+        <div class="user-role">Seller</div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-content">
+
+    <!-- ===================== DASHBOARD ===================== -->
+    <div id="section-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Seller Dashboard</div>
+          <div class="page-subtitle">Ironwood Fabrication Co. · Listed 14 days ago</div>
+        </div>
+        <div class="flex gap-3">
+          <span class="badge badge-green">● Listing Active</span>
+          <button class="btn btn-ghost btn-sm" onclick="showSection('listing')">Edit Listing</button>
+        </div>
+      </div>
+      <div class="page-body">
+        <div class="stats-grid">
+          <div class="card card-sm">
+            <div class="card-title">Profile Views</div>
+            <div class="card-value">147</div>
+            <div class="card-meta">↑ 23 this week</div>
+          </div>
+          <div class="card card-sm">
+            <div class="card-title">Buyer Interest</div>
+            <div class="card-value">12</div>
+            <div class="card-meta">Buyers who liked your listing</div>
+          </div>
+          <div class="card card-sm">
+            <div class="card-title">Compatibility Avg.</div>
+            <div class="card-value">81%</div>
+            <div class="card-meta">Among interested buyers</div>
+          </div>
+          <div class="card card-sm">
+            <div class="card-title">NDAs Completed</div>
+            <div class="card-value">3</div>
+            <div class="card-meta">Full reveals granted</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="gap:20px;max-width:900px">
+          <div class="analytics-card">
+            <div class="flex-between">
+              <div>
+                <div class="card-title">Weekly Views</div>
+                <div class="card-value">147</div>
+              </div>
+              <span class="badge badge-green">↑ 18%</span>
+            </div>
+            <div class="spark-bar" id="spark-bar"></div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px">
+              <span class="text-xs text-grey">Jun 5</span>
+              <span class="text-xs text-grey">Jun 11</span>
+            </div>
+          </div>
+
+          <div class="analytics-card">
+            <div class="card-title" style="margin-bottom:14px">Top Interested Buyers</div>
+            ${BUYERS.slice(0,4).map(b => `
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                <div class="user-avatar" style="width:32px;height:32px;font-size:0.78rem;flex-shrink:0">${b.initials}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:0.82rem;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.name}</div>
+                  <div class="text-xs text-grey">${b.funding}</div>
+                </div>
+                ${scoreRingHTML(b.score, 40)}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="card mt-4" style="max-width:900px">
+          <div class="flex-between mb-3">
+            <div class="card-title">Anonymity Preview</div>
+            <div class="flex gap-2">
+              <span class="anon-badge anon-1">👤 How buyers see you now</span>
+            </div>
+          </div>
+          <div class="grid-3" style="gap:12px">
+            <div class="card card-sm" style="background:var(--black)">
+              <div class="text-xs text-grey mb-1">Business Name</div>
+              <div style="font-size:0.86rem;color:var(--grey-mid);font-style:italic">[Hidden]</div>
+            </div>
+            <div class="card card-sm" style="background:var(--black)">
+              <div class="text-xs text-grey mb-1">Revenue</div>
+              <div style="font-size:0.86rem;color:var(--white)">$3M–$5M range</div>
+            </div>
+            <div class="card card-sm" style="background:var(--black)">
+              <div class="text-xs text-grey mb-1">Location</div>
+              <div style="font-size:0.86rem;color:var(--white)">Midwest</div>
+            </div>
+          </div>
+          <p class="text-xs text-grey mt-3">You're on <strong style="color:var(--white)">Level 1 Anonymity</strong>. Buyers see industry, revenue range, and region only. Full details unlock after mutual NDA. <a style="color:var(--orange-light);cursor:pointer" onclick="showSection('listing')">Change anonymity level →</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== LISTING WIZARD ===================== -->
+    <div id="section-listing" class="hidden">
+      <div class="page-header">
+        <div>
+          <div class="page-title">My Listing</div>
+          <div class="page-subtitle">Keep this updated to improve your match quality</div>
+        </div>
+        <div class="flex gap-3">
+          <span class="badge badge-green">● Active</span>
+          <button class="btn btn-ghost btn-sm" onclick="toast('Listing saved as draft','success')">Save Draft</button>
+          <button class="btn btn-primary btn-sm" onclick="toast('Listing published!','success')">Publish Changes</button>
+        </div>
+      </div>
+      <div class="page-body">
+        <div class="listing-wizard">
+
+          <!-- SECTION 1 -->
+          <div class="wizard-section">
+            <div class="wizard-section-header" onclick="toggleSection(this)">
+              <div class="wizard-section-title">
+                <div class="wizard-step-num">1</div>
+                Business Basics
+              </div>
+              <span class="wizard-chevron open">▾</span>
+            </div>
+            <div class="wizard-section-body open">
+              <div class="form-group">
+                <label class="form-label">Business Name <span class="text-grey">(kept private per anonymity settings)</span></label>
+                <input class="form-input" value="Ironwood Fabrication Co.">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Industry</label>
+                  <select class="form-select">
+                    <option selected>Manufacturing</option>
+                    <option>Healthcare</option>
+                    <option>Food & Beverage</option>
+                    <option>Professional Services</option>
+                    <option>Technology</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Years Operating</label>
+                  <input class="form-input" type="number" value="28">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Full-Time Employees</label>
+                  <input class="form-input" value="45–60">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Location (City, State)</label>
+                  <input class="form-input" value="Cleveland, OH">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">One-Line Description</label>
+                <input class="form-input" value="Built for craftsmen. Ran like a family.">
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2 -->
+          <div class="wizard-section">
+            <div class="wizard-section-header" onclick="toggleSection(this)">
+              <div class="wizard-section-title"><div class="wizard-step-num">2</div> Financials</div>
+              <span class="wizard-chevron">▾</span>
+            </div>
+            <div class="wizard-section-body">
+              <div class="form-group">
+                <label class="form-label">Asking Price</label>
+                <input class="form-input" value="$2,800,000">
+                <div class="form-hint">Exact price only visible after NDA</div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Annual Revenue</label>
+                  <input class="form-input" value="$4,200,000">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">EBITDA</label>
+                  <input class="form-input" value="$680,000">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Revenue Band (shown pre-NDA)</label>
+                  <select class="form-select">
+                    <option>Under $500K</option>
+                    <option>$500K–$1M</option>
+                    <option>$1M–$2.5M</option>
+                    <option selected>$3M–$5M</option>
+                    <option>$5M–$10M</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Seller Financing</label>
+                  <select class="form-select">
+                    <option selected>Yes — available</option>
+                    <option>No</option>
+                    <option>Negotiable</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 3 -->
+          <div class="wizard-section">
+            <div class="wizard-section-header" onclick="toggleSection(this)">
+              <div class="wizard-section-title"><div class="wizard-step-num">3</div> Values & Mission</div>
+              <span class="wizard-chevron">▾</span>
+            </div>
+            <div class="wizard-section-body">
+              <div class="form-group">
+                <label class="form-label">Your Core Values (shown to buyers)</label>
+                <input class="form-input" value="Craftsmanship, Employee dignity, Long-term thinking">
+                <div class="form-hint">Separate with commas · up to 5 values</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Values Statement</label>
+                <textarea class="form-textarea" rows="4">We believe skilled trades deserve the same respect as any profession. Every person on our floor has been with us over eight years. I'm not selling to the highest bidder — I'm finding someone who sees what I see.</textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Transition Goals</label>
+                <textarea class="form-textarea">I want to retire knowing my team is taken care of and the company keeps doing meaningful work. I'd ideally stay on for 12 months as a consultant.</textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Transition Timeline</label>
+                <select class="form-select">
+                  <option>3–6 months</option>
+                  <option>6–12 months</option>
+                  <option selected>12–18 months</option>
+                  <option>18–24 months</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 4 — ANONYMITY -->
+          <div class="wizard-section">
+            <div class="wizard-section-header" onclick="toggleSection(this)">
+              <div class="wizard-section-title"><div class="wizard-step-num">4</div> Privacy & Anonymity Level</div>
+              <span class="wizard-chevron">▾</span>
+            </div>
+            <div class="wizard-section-body">
+              <p class="text-sm text-grey mb-3">Choose how much detail buyers see <strong style="color:var(--white)">before</strong> signing an NDA. Full details are always revealed post-NDA.</p>
+              <div class="anon-selector">
+                <div class="anon-opt selected" onclick="selectAnon(1,this)">
+                  <div class="anon-icon">👤</div>
+                  <div class="anon-name">Anonymous</div>
+                  <div class="anon-desc">No name, revenue range only, region only</div>
+                </div>
+                <div class="anon-opt" onclick="selectAnon(2,this)">
+                  <div class="anon-icon">🔓</div>
+                  <div class="anon-name">Partial ID</div>
+                  <div class="anon-desc">First name, industry, revenue band, city</div>
+                </div>
+                <div class="anon-opt" onclick="selectAnon(3,this)">
+                  <div class="anon-icon">✅</div>
+                  <div class="anon-name">Full Reveal</div>
+                  <div class="anon-desc">Everything visible immediately — no NDA gate</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== BUYER INTEREST ===================== -->
+    <div id="section-interests" class="hidden">
+      <div class="page-header">
+        <div class="page-title">Buyer Interest</div>
+        <div class="page-subtitle">12 buyers have connected with your listing · Sorted by compatibility</div>
+      </div>
+      <div class="page-body">
+        <div class="tabs">
+          <div class="tab active" onclick="filterInterest('all',this)">All (12)</div>
+          <div class="tab" onclick="filterInterest('nda',this)">NDA Signed (3)</div>
+          <div class="tab" onclick="filterInterest('active',this)">Active Conversations (2)</div>
+        </div>
+        <div id="interests-list"></div>
+      </div>
+    </div>
+
+    <!-- ===================== VAULT ===================== -->
+    <div id="section-vault" class="hidden">
+      <div class="page-header">
+        <div class="page-title">Document Vault</div>
+        <div class="page-subtitle">Documents are encrypted · Only accessible after NDA signing</div>
+      </div>
+      <div class="page-body">
+        <div style="max-width:680px">
+          <div class="card mb-4">
+            <div class="flex-between mb-4">
+              <div>
+                <div style="font-size:0.96rem;font-weight:600;color:var(--white)">Pre-NDA Documents</div>
+                <div class="text-sm text-grey mt-1">Visible to matched buyers before signing</div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="toast('Upload UI would open here','default')">+ Upload</button>
+            </div>
+            <div class="vault-item">
+              <div class="vault-icon">📄</div>
+              <div style="flex:1">
+                <div class="vault-name">Business Overview — Teaser.pdf</div>
+                <div class="vault-meta">2.1 MB · Uploaded Jun 3 · Viewed 8 times</div>
+              </div>
+              <span class="badge badge-grey">Pre-NDA</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="flex-between mb-4">
+              <div>
+                <div style="font-size:0.96rem;font-weight:600;color:var(--white)">Post-NDA Documents</div>
+                <div class="text-sm text-grey mt-1">🔒 Only accessible after buyer signs NDA</div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="toast('Upload UI would open here','default')">+ Upload</button>
+            </div>
+            <div class="vault-item">
+              <div class="vault-icon">📊</div>
+              <div style="flex:1">
+                <div class="vault-name">3-Year P&L Statement.xlsx</div>
+                <div class="vault-meta">890 KB · Uploaded Jun 3 · Viewed 3 times (NDA holders only)</div>
+              </div>
+              <span class="badge badge-orange">Post-NDA</span>
+            </div>
+            <div class="vault-item">
+              <div class="vault-icon">📋</div>
+              <div style="flex:1">
+                <div class="vault-name">Equipment & Asset Schedule.pdf</div>
+                <div class="vault-meta">1.4 MB · Uploaded Jun 5 · Viewed 2 times</div>
+              </div>
+              <span class="badge badge-orange">Post-NDA</span>
+            </div>
+            <div class="vault-item">
+              <div class="vault-icon">📜</div>
+              <div style="flex:1">
+                <div class="vault-name">Employee Agreements Summary.pdf</div>
+                <div class="vault-meta">560 KB · Uploaded Jun 5 · 0 views</div>
+              </div>
+              <span class="badge badge-orange">Post-NDA</span>
+            </div>
+            <button class="btn btn-ghost btn-sm mt-3" onclick="toast('Max 10 post-NDA documents on Standard plan','default')">+ Add Document</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== CHAT ===================== -->
+    <div id="section-chat" class="hidden">
+      <div class="page-header">
+        <div class="page-title">Messages</div>
+        <div class="page-subtitle">Secure conversations with NDA-verified buyers</div>
+      </div>
+      <div class="page-body" style="padding-top:20px">
+        <div style="display:flex;gap:20px;height:calc(100vh - 160px)">
+          <div style="width:280px;flex-shrink:0;overflow-y:auto">
+            ${BUYERS.slice(0,3).map((b,i) => `
+              <div class="match-item" onclick="openSellerChat('${b.id}')">
+                <div class="user-avatar" style="width:40px;height:40px;font-size:0.9rem;flex-shrink:0">${b.initials}</div>
+                <div class="match-info">
+                  <div class="match-name">${b.name}</div>
+                  <div class="match-meta">${b.priceRange} · ${b.location}</div>
+                </div>
+                <div class="match-status-dot ${i<2?'active':''}"></div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="chat-window" id="seller-chat-window">
+            <div class="empty-state" style="margin:auto">
+              <div class="empty-icon">💬</div>
+              <h3>Select a conversation</h3>
+              <p>Choose a buyer from the left to continue your secure dialogue.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== SUBSCRIPTION ===================== -->
+    <div id="section-subscription" class="hidden">
+      <div class="page-header">
+        <div class="page-title">Listing Plans</div>
+        <div class="page-subtitle">Boost your visibility and access more buyer insights</div>
+      </div>
+      <div class="page-body">
+        <div class="grid-3" style="max-width:900px">
+          <div class="plan-card">
+            <div class="plan-name">Basic Listing</div>
+            <div class="plan-price">$49 <span>/ month</span></div>
+            <div class="plan-features">
+              <div class="plan-feature">1 active listing</div>
+              <div class="plan-feature">Standard queue placement</div>
+              <div class="plan-feature">Basic vault (3 docs)</div>
+              <div class="plan-feature disabled">Buyer analytics</div>
+              <div class="plan-feature disabled">Priority placement</div>
+            </div>
+            <button class="btn btn-ghost btn-block">Current Plan</button>
+          </div>
+          <div class="plan-card featured">
+            <div class="plan-featured-badge">Recommended</div>
+            <div class="plan-name">Standard Listing</div>
+            <div class="plan-price">$149 <span>/ month</span></div>
+            <div class="plan-features">
+              <div class="plan-feature">3 active listings</div>
+              <div class="plan-feature">Priority queue placement</div>
+              <div class="plan-feature">Full vault (10 docs)</div>
+              <div class="plan-feature">Buyer analytics</div>
+              <div class="plan-feature disabled">Dedicated advisor</div>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="toast('Redirecting to Stripe…','default')">Upgrade →</button>
+          </div>
+          <div class="plan-card">
+            <div class="plan-name">Premium Listing</div>
+            <div class="plan-price">$299 <span>/ month</span></div>
+            <div class="plan-features">
+              <div class="plan-feature">Unlimited listings</div>
+              <div class="plan-feature">Top of queue</div>
+              <div class="plan-feature">Unlimited vault</div>
+              <div class="plan-feature">Deep buyer analytics</div>
+              <div class="plan-feature">Dedicated advisor</div>
+            </div>
+            <button class="btn btn-ghost btn-block" onclick="toast('Redirecting to Stripe…','default')">Upgrade →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+let user;
+window.onload = function() {
+  const stored = sessionStorage.getItem('vv_user');
+  if (!stored) { window.location.href = 'index.html'; return; }
+  user = JSON.parse(stored);
+  document.getElementById('user-avatar').textContent = user.initials || 'S';
+  document.getElementById('user-name').textContent = user.name || 'Seller';
+  buildSparkBar();
+  buildInterestsList();
+};
+
+function showSection(name) {
+  ['dashboard','listing','interests','vault','chat','subscription'].forEach(s => {
+    document.getElementById('section-'+s).classList.toggle('hidden', s !== name);
+    const nav = document.getElementById('nav-'+s);
+    if (nav) nav.classList.toggle('active', s === name);
+  });
+}
+function switchToBuyer() {
+  sessionStorage.setItem('vv_user', JSON.stringify({role:'buyer', name:'Angela Reyes', initials:'AR'}));
+  window.location.href = 'buyer.html';
+}
+
+function toggleSection(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.wizard-chevron');
+  body.classList.toggle('open');
+  if (chevron) chevron.classList.toggle('open');
+}
+
+function selectAnon(level, el) {
+  document.querySelectorAll('.anon-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  toast(['', 'Level 1 — Anonymous', 'Level 2 — Partial ID', 'Level 3 — Full Reveal'][level] + ' selected', 'default');
+}
+
+function buildSparkBar() {
+  const bar = document.getElementById('spark-bar');
+  if (!bar) return;
+  const data = [8, 14, 19, 12, 23, 31, 28, 22, 17, 25, 34, 22, 18, 29];
+  const max = Math.max(...data);
+  bar.innerHTML = data.map(v => `
+    <div class="spark-bar-item" style="height:${Math.max(8, (v/max)*56)}px" title="${v} views"></div>
+  `).join('');
+}
+
+function buildInterestsList() {
+  const list = document.getElementById('interests-list');
+  if (!list) return;
+  list.innerHTML = BUYERS.map((b,i) => `
+    <div class="interest-card" onclick="viewBuyerProfile('${b.id}')">
+      <div class="interest-status ${i < 3 ? '' : 'pending'}"></div>
+      <div class="user-avatar" style="width:40px;height:40px;font-size:0.9rem;flex-shrink:0">${b.initials}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:0.88rem;font-weight:600;color:var(--white)">${b.name}</div>
+        <div class="text-xs text-grey mt-1">${b.background}</div>
+        <div class="flex gap-2 mt-2">
+          ${b.industries.slice(0,2).map(ind => `<span class="badge badge-grey">${ind}</span>`).join('')}
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        ${scoreRingHTML(b.score, 52)}
+        <div class="text-xs text-grey mt-1">${b.priceRange}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterInterest(filter, tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  toast(`Showing: ${filter === 'all' ? 'All buyers' : filter === 'nda' ? 'NDA signed only' : 'Active conversations'}`, 'default');
+}
+
+function viewBuyerProfile(id) {
+  const b = BUYERS.find(x => x.id === id);
+  if (!b) return;
+  toast(`Viewing ${b.name}'s profile — ${b.background}`, 'default');
+}
+
+function openSellerChat(id) {
+  const b = BUYERS.find(x => x.id === id);
+  if (!b) return;
+  const win = document.getElementById('seller-chat-window');
+  win.innerHTML = `
+    <div class="chat-window-header">
+      <div class="user-avatar" style="width:36px;height:36px;font-size:0.9rem">${b.initials}</div>
+      <div>
+        <div style="font-size:0.9rem;font-weight:600;color:var(--white)">${b.name}</div>
+        <div class="text-xs text-grey">🔒 Encrypted · NDA active</div>
+      </div>
+      <span class="badge badge-green" style="margin-left:auto">Secure</span>
+    </div>
+    <div class="chat-messages" id="s-chat-msgs">
+      <div><div class="chat-bubble theirs">Hi, I reviewed your listing and the values alignment is really compelling. I'd love to set up a call.</div><div class="chat-time">2 days ago</div></div>
+      <div><div class="chat-bubble mine">Great to hear from you. I've reviewed your profile and have some questions about your operational background.</div><div class="chat-time">1 day ago</div></div>
+    </div>
+    <div class="chat-input-area">
+      <textarea class="chat-input" id="s-chat-input" placeholder="Type a message…" rows="1"></textarea>
+      <button class="btn btn-primary" onclick="sendSellerMsg()">Send</button>
+    </div>
+  `;
+}
+
+function sendSellerMsg() {
+  const input = document.getElementById('s-chat-input');
+  if (!input?.value.trim()) return;
+  const msgs = document.getElementById('s-chat-msgs');
+  msgs.innerHTML += `<div><div class="chat-bubble mine">${input.value}</div><div class="chat-time">Just now</div></div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+  input.value = '';
+  setTimeout(() => {
+    msgs.innerHTML += `<div><div class="chat-bubble theirs">Thank you — I'll respond shortly.</div><div class="chat-time">Just now</div></div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 1200);
+}
+</script>
+</body>
+</html>

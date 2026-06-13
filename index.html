@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V+V Business Marketplace — Sign In</title>
+<link rel="stylesheet" href="app.css">
+<style>
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--black-deep); }
+
+  .auth-split {
+    display: flex;
+    width: 100%;
+    max-width: 960px;
+    min-height: 580px;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.7);
+    border: 1px solid var(--grey-border);
+  }
+
+  /* LEFT PANEL */
+  .auth-brand {
+    flex: 1;
+    background: var(--black);
+    background-image:
+      radial-gradient(ellipse at 30% 70%, rgba(160,85,0,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(160,85,0,0.08) 0%, transparent 50%);
+    padding: 52px 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .brand-mark {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.2rem;
+    color: var(--white);
+    letter-spacing: 0.06em;
+    line-height: 1;
+  }
+  .brand-mark span { color: var(--orange-light); }
+  .brand-tagline {
+    font-size: 0.9rem;
+    color: var(--grey-dark);
+    margin-top: 10px;
+    line-height: 1.6;
+    max-width: 260px;
+  }
+  .brand-quotes { display: flex; flex-direction: column; gap: 20px; }
+  .brand-quote {
+    border-left: 2px solid var(--orange);
+    padding: 4px 0 4px 16px;
+  }
+  .brand-quote p {
+    font-size: 0.82rem;
+    color: var(--grey-light);
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .brand-quote .quote-role {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--orange-light);
+    margin-top: 5px;
+  }
+
+  .brand-stats {
+    display: flex;
+    gap: 28px;
+    margin-top: 8px;
+  }
+  .stat-item .stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--white);
+    line-height: 1;
+  }
+  .stat-item .stat-lbl { font-size: 0.68rem; color: var(--grey-dark); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  /* RIGHT PANEL */
+  .auth-panel {
+    width: 420px;
+    flex-shrink: 0;
+    background: var(--black-card);
+    padding: 44px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .auth-panel h2 { font-size: 1.5rem; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+  .auth-panel .auth-sub { font-size: 0.84rem; color: var(--grey-dark); margin-bottom: 28px; }
+
+  .role-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .role-btn {
+    padding: 10px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--grey-border);
+    background: var(--black);
+    color: var(--grey-dark);
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: var(--transition);
+  }
+  .role-btn:hover { border-color: var(--orange); color: var(--white); }
+  .role-btn.active { border-color: var(--orange); background: var(--orange-faint); color: var(--orange-light); }
+  .role-btn .role-icon { font-size: 1.2rem; display: block; margin-bottom: 4px; }
+
+  .demo-logins {
+    background: var(--black);
+    border: 1px solid var(--grey-border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    margin-bottom: 20px;
+  }
+  .demo-logins .demo-title {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--orange-light);
+    margin-bottom: 10px;
+  }
+  .demo-login-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--grey-border);
+    cursor: pointer;
+  }
+  .demo-login-item:last-child { border-bottom: none; }
+  .demo-login-item:hover .demo-email { color: var(--orange-light); }
+  .demo-email { font-size: 0.78rem; color: var(--grey-light); transition: var(--transition); }
+  .demo-role-tag {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--grey-mid);
+  }
+
+  .divider-text {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--grey-mid);
+    font-size: 0.75rem;
+    margin: 16px 0;
+  }
+  .divider-text::before, .divider-text::after {
+    content: ''; flex: 1; height: 1px; background: var(--grey-border);
+  }
+
+  /* ONBOARDING */
+  .onboarding-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(6px);
+    z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .onboarding-overlay.open { opacity: 1; pointer-events: all; }
+  .onboarding-card {
+    background: var(--black-card);
+    border: 1px solid var(--grey-border);
+    border-radius: var(--radius-xl);
+    padding: 40px;
+    width: 100%; max-width: 580px;
+    max-height: 88vh; overflow-y: auto;
+    box-shadow: var(--shadow-card);
+    transform: translateY(24px); transition: transform 0.3s;
+  }
+  .onboarding-overlay.open .onboarding-card { transform: translateY(0); }
+
+  .onboarding-step { display: none; }
+  .onboarding-step.active { display: block; }
+
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .value-chip {
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--grey-border);
+    background: var(--black);
+    font-size: 0.78rem;
+    color: var(--grey-dark);
+    cursor: pointer;
+    text-align: center;
+    transition: var(--transition);
+    line-height: 1.3;
+  }
+  .value-chip:hover { border-color: var(--orange); color: var(--white); }
+  .value-chip.selected { border-color: var(--orange); background: var(--orange-faint); color: var(--orange-light); }
+</style>
+</head>
+<body>
+<div id="toast-container" class="toast-container"></div>
+
+<!-- MAIN AUTH SPLIT -->
+<div class="auth-split">
+  <!-- LEFT BRAND PANEL -->
+  <div class="auth-brand">
+    <div>
+      <div class="brand-mark">V<span>+</span>V</div>
+      <div class="brand-tagline">The place where you buy and sell businesses based on shared values.</div>
+    </div>
+    <div class="brand-quotes">
+      <div class="brand-quote">
+        <p>"I'm not selling to the highest bidder. I'm finding someone who sees what I see."</p>
+        <div class="quote-role">Seller — Manufacturing, 28 years</div>
+      </div>
+      <div class="brand-quote">
+        <p>"I've spent my career building programs that move the needle. I want to run a business that does the same thing."</p>
+        <div class="quote-role">Buyer — Workforce Development</div>
+      </div>
+    </div>
+    <div class="brand-stats">
+      <div class="stat-item">
+        <div class="stat-val">847</div>
+        <div class="stat-lbl">Active Listings</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">312</div>
+        <div class="stat-lbl">Matches Made</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">94%</div>
+        <div class="stat-lbl">NDA Completion</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT AUTH PANEL -->
+  <div class="auth-panel">
+    <h2>Welcome back</h2>
+    <p class="auth-sub">Sign in to your account to continue.</p>
+
+    <!-- Quick Demo Logins -->
+    <div class="demo-logins">
+      <div class="demo-title">⚡ Quick Demo Access</div>
+      <div class="demo-login-item" onclick="fillLogin('angela@example.com','demo')">
+        <span class="demo-email">angela@example.com</span>
+        <span class="demo-role-tag">Buyer</span>
+      </div>
+      <div class="demo-login-item" onclick="fillLogin('marcus@example.com','demo')">
+        <span class="demo-email">marcus@example.com</span>
+        <span class="demo-role-tag">Seller</span>
+      </div>
+      <div class="demo-login-item" onclick="fillLogin('admin@vvmarketplace.com','admin')">
+        <span class="demo-email">admin@vvmarketplace.com</span>
+        <span class="demo-role-tag">Admin</span>
+      </div>
+    </div>
+
+    <div class="divider-text">or sign in manually</div>
+
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <input class="form-input" id="email-input" type="email" placeholder="you@example.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="password-input" type="password" placeholder="••••••••">
+    </div>
+
+    <button class="btn btn-primary btn-block btn-lg mt-4" onclick="handleLogin()">
+      Sign In →
+    </button>
+
+    <div class="divider-text mt-4">new to V+V?</div>
+
+    <button class="btn btn-ghost btn-block" onclick="startOnboarding()">
+      Create Account
+    </button>
+  </div>
+</div>
+
+<!-- ONBOARDING OVERLAY -->
+<div class="onboarding-overlay" id="onboarding-overlay">
+  <div class="onboarding-card">
+    <div id="onboard-header">
+      <div class="flex-between mb-4">
+        <div class="display" style="font-size:1.4rem;color:var(--white)">Join V<span style="color:var(--orange-light)">+</span>V</div>
+        <button class="modal-close" onclick="closeOnboarding()">✕</button>
+      </div>
+      <!-- Step bar -->
+      <div class="step-bar" id="step-bar">
+        <div class="step-item">
+          <div class="step-circle active" id="sc1">1</div>
+          <div class="step-line" id="sl1"></div>
+        </div>
+        <div class="step-item">
+          <div class="step-circle" id="sc2">2</div>
+          <div class="step-line" id="sl2"></div>
+        </div>
+        <div class="step-item">
+          <div class="step-circle" id="sc3">3</div>
+          <div class="step-line" id="sl3"></div>
+        </div>
+        <div class="step-item">
+          <div class="step-circle" id="sc4">4</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1: Role -->
+    <div class="onboarding-step active" id="ob-step-1">
+      <h3 style="margin-bottom:6px">How are you joining V+V?</h3>
+      <p class="text-grey text-sm mb-4">You can update your role anytime, or set a Dual account later.</p>
+      <div class="role-selector" style="grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+        <div class="role-btn" id="role-buyer" onclick="selectRole('buyer')">
+          <span class="role-icon">🔍</span>Buyer
+        </div>
+        <div class="role-btn" id="role-seller" onclick="selectRole('seller')">
+          <span class="role-icon">🏢</span>Seller
+        </div>
+        <div class="role-btn" id="role-dual" onclick="selectRole('dual')">
+          <span class="role-icon">⇄</span>Both
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="obNext(2)">Continue →</button>
+    </div>
+
+    <!-- STEP 2: Account -->
+    <div class="onboarding-step" id="ob-step-2">
+      <h3 style="margin-bottom:6px">Create your account</h3>
+      <p class="text-grey text-sm mb-4">Your email is encrypted. We never share it.</p>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">First Name</label><input class="form-input" placeholder="First"></div>
+        <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" placeholder="Last"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Email Address</label><input class="form-input" type="email" placeholder="you@example.com"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" placeholder="At least 8 characters"></div>
+      <div class="flex gap-3 mt-4">
+        <button class="btn btn-ghost" onclick="obBack(1)">← Back</button>
+        <button class="btn btn-primary" style="flex:1" onclick="obNext(3)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Values -->
+    <div class="onboarding-step" id="ob-step-3">
+      <h3 style="margin-bottom:6px">What do you stand for?</h3>
+      <p class="text-grey text-sm mb-4">Choose your top 3–5 values. These power your compatibility matches.</p>
+      <div class="values-grid" id="values-grid">
+        <!-- Populated by JS -->
+      </div>
+      <div class="form-group mt-4">
+        <label class="form-label">In your own words</label>
+        <textarea class="form-textarea" placeholder="What matters most to you in a business partner or the company you're acquiring?"></textarea>
+      </div>
+      <div class="flex gap-3 mt-4">
+        <button class="btn btn-ghost" onclick="obBack(2)">← Back</button>
+        <button class="btn btn-primary" style="flex:1" onclick="obNext(4)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Complete -->
+    <div class="onboarding-step" id="ob-step-4">
+      <div style="text-align:center;padding:20px 0">
+        <div style="font-size:3.5rem;margin-bottom:16px">🎉</div>
+        <h3 style="font-size:1.3rem;margin-bottom:8px">You're in.</h3>
+        <p class="text-grey" style="max-width:320px;margin:0 auto 24px;line-height:1.6;font-size:0.88rem">
+          Your values profile is being processed. We'll start surfacing matches as soon as your account is activated.
+        </p>
+        <button class="btn btn-primary btn-lg" onclick="completeOnboarding()">Go to my dashboard →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  let selectedRole = 'buyer';
+  const VALUES_LIST = [
+    'Community impact','Craftsmanship','Employee dignity','Long-term thinking',
+    'Equity','Environmental justice','Editorial independence','Accessibility',
+    'Clinical excellence','Worker safety','Creative excellence','Economic mobility',
+    'Integrity','Compassionate care','Family values','Sustainability',
+    'Workforce development','Client stewardship','Resident dignity','Authentic craft'
+  ];
+
+  window.onload = function() {
+    // Render values chips
+    const grid = document.getElementById('values-grid');
+    if (grid) grid.innerHTML = VALUES_LIST.map(v =>
+      `<div class="value-chip" onclick="toggleValue(this)">${v}</div>`
+    ).join('');
+  };
+
+  function fillLogin(email, pass) {
+    document.getElementById('email-input').value = email;
+    document.getElementById('password-input').value = pass;
+    toast('Demo credentials filled — click Sign In', 'default');
+  }
+
+  function handleLogin() {
+    const email = document.getElementById('email-input').value.trim();
+    const pass = document.getElementById('password-input').value;
+    const account = AppState.accounts[email];
+    if (!account || account.password !== pass) {
+      toast('Invalid email or password', 'danger');
+      return;
+    }
+    // Store session
+    sessionStorage.setItem('vv_user', JSON.stringify(account));
+    sessionStorage.setItem('vv_sellers', JSON.stringify(AppState.sellers));
+    // Route by role
+    if (account.role === 'buyer') window.location.href = 'buyer.html';
+    else if (account.role === 'seller') window.location.href = 'seller.html';
+    else window.location.href = 'admin.html';
+  }
+
+  function startOnboarding() {
+    document.getElementById('onboarding-overlay').classList.add('open');
+  }
+  function closeOnboarding() {
+    document.getElementById('onboarding-overlay').classList.remove('open');
+  }
+
+  function selectRole(r) {
+    selectedRole = r;
+    ['buyer','seller','dual'].forEach(x => document.getElementById('role-'+x).classList.remove('active'));
+    document.getElementById('role-'+r).classList.add('active');
+  }
+
+  let obCurrentStep = 1;
+  function obNext(step) {
+    document.getElementById('ob-step-' + obCurrentStep).classList.remove('active');
+    document.getElementById('ob-step-' + step).classList.add('active');
+    // Update step circles
+    for (let i = 1; i <= 4; i++) {
+      const c = document.getElementById('sc'+i);
+      if (i < step) { c.classList.add('done'); c.classList.remove('active'); c.innerHTML = '✓'; }
+      else if (i === step) { c.classList.add('active'); c.classList.remove('done'); }
+      else { c.classList.remove('active','done'); }
+    }
+    for (let i = 1; i <= 3; i++) {
+      const l = document.getElementById('sl'+i);
+      if (l) l.classList.toggle('done', i < step);
+    }
+    obCurrentStep = step;
+  }
+  function obBack(step) { obNext(step); }
+
+  function toggleValue(el) {
+    const selected = document.querySelectorAll('.value-chip.selected');
+    if (!el.classList.contains('selected') && selected.length >= 5) {
+      toast('Select up to 5 values', 'default'); return;
+    }
+    el.classList.toggle('selected');
+  }
+
+  function completeOnboarding() {
+    const account = { role: selectedRole === 'dual' ? 'buyer' : selectedRole, name: 'New User', initials: 'NU' };
+    sessionStorage.setItem('vv_user', JSON.stringify(account));
+    if (account.role === 'seller') window.location.href = 'seller.html';
+    else window.location.href = 'buyer.html';
+  }
+
+  // Enter key support
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleLogin();
+  });
+</script>
+</body>
+</html>

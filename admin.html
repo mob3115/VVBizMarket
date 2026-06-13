@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V+V — Admin Dashboard</title>
+<link rel="stylesheet" href="app.css">
+<style>
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--grey-dark); padding: 10px 14px; text-align: left;
+  border-bottom: 1px solid var(--grey-border); background: var(--black);
+}
+.data-table td { padding: 12px 14px; border-bottom: 1px solid var(--grey-border); font-size: 0.84rem; color: var(--grey-light); vertical-align: middle; }
+.data-table tr:hover td { background: var(--black-hover); }
+.data-table tr:last-child td { border-bottom: none; }
+
+.metric-card {
+  background: var(--black-card);
+  border: 1px solid var(--grey-border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+}
+.metric-bar {
+  height: 6px; background: var(--grey-border); border-radius: 99px; margin-top: 10px; overflow: hidden;
+}
+.metric-fill { height: 100%; border-radius: 99px; background: var(--orange); }
+
+.log-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--grey-border);
+  font-size: 0.8rem;
+  display: flex;
+  gap: 14px;
+}
+.log-time { color: var(--grey-mid); width: 80px; flex-shrink: 0; font-size: 0.72rem; }
+.log-type { width: 80px; flex-shrink: 0; }
+.log-msg { color: var(--grey-light); flex: 1; }
+</style>
+</head>
+<body>
+<div id="toast-container" class="toast-container"></div>
+<div class="app-shell">
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="wordmark">V<span style="color:var(--orange-light)">+</span>V</div>
+      <div class="tagline">Admin Console</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Platform</div>
+      <div class="nav-item active" onclick="showSection('overview')" id="nav-overview"><span class="nav-icon">📊</span> Overview</div>
+      <div class="nav-item" onclick="showSection('users')" id="nav-users"><span class="nav-icon">👥</span> Users <span class="nav-badge">24</span></div>
+      <div class="nav-item" onclick="showSection('listings')" id="nav-listings"><span class="nav-icon">🏢</span> Listings</div>
+      <div class="nav-item" onclick="showSection('matches')" id="nav-matches"><span class="nav-icon">💛</span> Matches</div>
+      <div class="nav-section-label" style="margin-top:12px">Security</div>
+      <div class="nav-item" onclick="showSection('audit')" id="nav-audit"><span class="nav-icon">🔍</span> Audit Log</div>
+      <div class="nav-item" onclick="showSection('flags')" id="nav-flags"><span class="nav-icon">🚩</span> Flagged <span class="nav-badge" style="background:var(--danger)">2</span></div>
+      <div class="nav-section-label" style="margin-top:12px">System</div>
+      <div class="nav-item" onclick="window.location.href='index.html'"><span class="nav-icon">←</span> Exit Admin</div>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-avatar">AU</div>
+      <div class="user-info">
+        <div class="user-name">Admin User</div>
+        <div class="user-role" style="color:var(--danger)">Super Admin</div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-content">
+
+    <!-- OVERVIEW -->
+    <div id="section-overview">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Platform Overview</div>
+          <div class="page-subtitle">V+V Business Marketplace · As of June 12, 2026</div>
+        </div>
+        <span class="badge badge-green">● All Systems Operational</span>
+      </div>
+      <div class="page-body">
+        <div class="grid-4" style="margin-bottom:24px">
+          <div class="card card-sm"><div class="card-title">Total Users</div><div class="card-value">847</div><div class="card-meta">↑ 34 this week</div></div>
+          <div class="card card-sm"><div class="card-title">Active Listings</div><div class="card-value">213</div><div class="card-meta">↑ 12 this week</div></div>
+          <div class="card card-sm"><div class="card-title">Matches Made</div><div class="card-value">312</div><div class="card-meta">↑ 28 this week</div></div>
+          <div class="card card-sm"><div class="card-title">NDAs Completed</div><div class="card-value">89</div><div class="card-meta">94% completion rate</div></div>
+        </div>
+        <div class="grid-2" style="max-width:900px;gap:20px">
+          <div class="metric-card">
+            <div class="card-title" style="margin-bottom:14px">Platform Health</div>
+            ${[
+              ['API Response (P95)', '142ms', '71'],
+              ['Match Engine Latency', '380ms', '62'],
+              ['Uptime (30d)', '99.97%', '99'],
+              ['Active Sessions', '1,203', '48'],
+            ].map(([lbl, val, pct]) => `
+              <div style="margin-bottom:14px">
+                <div class="flex-between mb-1">
+                  <span class="text-sm">${lbl}</span>
+                  <span class="text-sm" style="color:var(--white)">${val}</span>
+                </div>
+                <div class="metric-bar"><div class="metric-fill" style="width:${pct}%;background:${pct>90?'var(--success)':pct>50?'var(--orange)':'var(--danger)'}"></div></div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="metric-card">
+            <div class="card-title" style="margin-bottom:14px">Revenue Snapshot</div>
+            <div style="margin-bottom:18px">
+              <div class="flex-between">
+                <span class="text-sm text-grey">MRR</span>
+                <span style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--white)">$38,400</span>
+              </div>
+              <div class="text-xs text-grey">↑ 12% from last month</div>
+            </div>
+            ${[
+              ['Free accounts', '412', '49'],
+              ['Standard', '319', '38'],
+              ['Premium', '116', '14'],
+            ].map(([lbl, count, pct]) => `
+              <div style="margin-bottom:10px">
+                <div class="flex-between mb-1">
+                  <span class="text-sm">${lbl}</span>
+                  <span class="text-xs text-grey">${count} users (${pct}%)</span>
+                </div>
+                <div class="metric-bar"><div class="metric-fill" style="width:${pct}%"></div></div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div id="section-users" class="hidden">
+      <div class="page-header">
+        <div class="page-title">User Management</div>
+        <div class="page-subtitle">847 total accounts</div>
+      </div>
+      <div class="page-body">
+        <div class="card">
+          <div class="flex-between mb-4">
+            <input class="form-input" placeholder="Search users…" style="max-width:300px">
+            <div class="flex gap-2">
+              <button class="btn btn-ghost btn-sm">Export CSV</button>
+              <button class="btn btn-primary btn-sm" onclick="toast('Invite flow would open','default')">Invite User</button>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead><tr>
+              <th>Name</th><th>Role</th><th>Plan</th><th>Joined</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody>
+              ${[...BUYERS.slice(0,6).map(b => ({name:b.name, role:'Buyer', plan:'Standard', joined:'Jun 1, 2026', status:'Active'})),
+                 ...SELLERS.slice(0,6).map(s => ({name:s.name, role:'Seller', plan:'Basic', joined:'May 28, 2026', status:'Active'}))
+              ].map(u => `
+                <tr>
+                  <td><strong style="color:var(--white)">${u.name}</strong></td>
+                  <td><span class="badge badge-grey">${u.role}</span></td>
+                  <td>${u.plan}</td>
+                  <td>${u.joined}</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td>
+                    <button class="btn btn-ghost btn-sm" onclick="toast('Viewing ${u.name}','default')">View</button>
+                    <button class="btn btn-sm" style="background:transparent;border:none;color:var(--danger);cursor:pointer" onclick="toast('Suspend action would require confirmation','danger')">Suspend</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTINGS -->
+    <div id="section-listings" class="hidden">
+      <div class="page-header">
+        <div class="page-title">Active Listings</div>
+        <div class="page-subtitle">All seller listings on the platform</div>
+      </div>
+      <div class="page-body">
+        <div class="card">
+          <table class="data-table">
+            <thead><tr><th>Business</th><th>Seller</th><th>Industry</th><th>Ask Price</th><th>Compatibility</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${SELLERS.map(s => `
+                <tr>
+                  <td><strong style="color:var(--white)">${s.businessName}</strong></td>
+                  <td>${s.name}</td>
+                  <td>${s.industryIcon} ${s.industry}</td>
+                  <td style="color:var(--orange-light)">${s.askingRange}</td>
+                  <td>
+                    <div class="flex-center gap-2">
+                      <div style="width:60px;height:6px;background:var(--grey-border);border-radius:99px;overflow:hidden">
+                        <div style="height:100%;width:${s.compatibility}%;background:${scoreColor(s.compatibility)};border-radius:99px"></div>
+                      </div>
+                      <span style="font-size:0.78rem;color:${scoreColor(s.compatibility)}">${s.compatibility}</span>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td>
+                    <button class="btn btn-ghost btn-sm" onclick="toast('Reviewing ${s.businessName}','default')">Review</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATCHES -->
+    <div id="section-matches" class="hidden">
+      <div class="page-header">
+        <div class="page-title">Match Activity</div>
+        <div class="page-subtitle">312 total matches on the platform</div>
+      </div>
+      <div class="page-body">
+        <div class="grid-4" style="margin-bottom:24px">
+          <div class="card card-sm"><div class="card-title">This Week</div><div class="card-value">28</div></div>
+          <div class="card card-sm"><div class="card-title">Mutual Matches</div><div class="card-value">187</div></div>
+          <div class="card card-sm"><div class="card-title">NDAs Triggered</div><div class="card-value">94</div></div>
+          <div class="card card-sm"><div class="card-title">Active Chats</div><div class="card-value">41</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">Recent Match Activity</div>
+          <table class="data-table">
+            <thead><tr><th>Buyer</th><th>Seller</th><th>Score</th><th>NDA Status</th><th>Date</th></tr></thead>
+            <tbody>
+              ${[
+                [BUYERS[0], SELLERS[0], 91, 'Signed', 'Jun 11'],
+                [BUYERS[2], SELLERS[1], 87, 'Signed', 'Jun 11'],
+                [BUYERS[6], SELLERS[3], 83, 'Pending', 'Jun 10'],
+                [BUYERS[1], SELLERS[11], 88, 'Signed', 'Jun 10'],
+                [BUYERS[4], SELLERS[5], 78, 'Pending', 'Jun 9'],
+                [BUYERS[3], SELLERS[0], 78, 'Pending', 'Jun 9'],
+              ].map(([b, s, score, nda, date]) => `
+                <tr>
+                  <td>${b.name}</td>
+                  <td>${s.name} <span class="text-xs text-grey">(${s.industry})</span></td>
+                  <td><span style="color:${scoreColor(score)};font-weight:600">${score}</span></td>
+                  <td><span class="badge ${nda==='Signed'?'badge-green':'badge-warning'}">${nda}</span></td>
+                  <td class="text-grey">${date}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUDIT LOG -->
+    <div id="section-audit" class="hidden">
+      <div class="page-header">
+        <div class="page-title">Audit Log</div>
+        <div class="page-subtitle">Immutable security event log · Tamper-evident</div>
+      </div>
+      <div class="page-body">
+        <div class="card">
+          <div class="flex-between mb-4">
+            <input class="form-input" placeholder="Filter events…" style="max-width:280px">
+            <div class="flex gap-2">
+              <select class="form-select" style="width:160px">
+                <option>All Events</option>
+                <option>Auth Events</option>
+                <option>NDA Events</option>
+                <option>Admin Actions</option>
+              </select>
+              <button class="btn btn-ghost btn-sm">Export Log</button>
+            </div>
+          </div>
+          ${[
+            ['14:32:01', 'AUTH', 'LOGIN', 'User angela@example.com authenticated from 192.168.1.1'],
+            ['14:31:47', 'NDA', 'SIGNED', 'Buyer b1 signed NDA for seller s1 (Ironwood Fabrication Co.)'],
+            ['14:28:12', 'VAULT', 'ACCESS', 'User b1 accessed post-NDA document: 3-Year P&L Statement.xlsx'],
+            ['14:22:05', 'AUTH', 'REFRESH', 'Token refresh for user b1 — old token invalidated'],
+            ['14:19:30', 'MATCH', 'CREATED', 'Mutual match created: buyer b1 ↔ seller s1 (score: 91)'],
+            ['14:15:22', 'RATE_LIMIT', 'TRIGGERED', 'Rapid swipe rate limit triggered for user b1 — request queued'],
+            ['13:58:44', 'AUTH', 'LOGIN', 'User marcus@example.com authenticated from 10.0.0.42'],
+            ['13:45:11', 'ADMIN', 'VIEW', 'Admin accessed user list — 24 records returned'],
+            ['13:30:00', 'LISTING', 'UPDATED', 'Seller s1 updated listing — anonymity level changed to 1'],
+            ['12:00:00', 'SYSTEM', 'SCAN', 'Scheduled vulnerability scan completed — 0 critical findings'],
+          ].map(([time, type, action, msg]) => `
+            <div class="log-item">
+              <span class="log-time">${time}</span>
+              <span class="log-type"><span class="badge ${
+                type==='AUTH'?'badge-grey':type==='NDA'?'badge-green':type==='VAULT'?'badge-orange':
+                type==='RATE_LIMIT'?'badge-warning':type==='ADMIN'?'badge-orange':'badge-grey'
+              }" style="font-size:0.6rem;padding:2px 7px">${type}</span></span>
+              <span style="color:var(--white);font-size:0.75rem;margin-right:8px;flex-shrink:0">${action}</span>
+              <span class="log-msg">${msg}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- FLAGS -->
+    <div id="section-flags" class="hidden">
+      <div class="page-header">
+        <div class="page-title">Flagged Content</div>
+        <div class="page-subtitle">2 items require review</div>
+      </div>
+      <div class="page-body">
+        ${[
+          { title: 'Suspicious price anomaly', desc: 'Listing s10 (Thornton Security) asking price ($5.2M) is 3.4× above revenue multiple baseline for industry.', severity: 'warning', icon: '⚠️' },
+          { title: 'Potential duplicate account', desc: 'Two accounts created from same IP within 2 hours: angela@example.com and angela2@example.com. Action may be required.', severity: 'danger', icon: '🚩' },
+        ].map(f => `
+          <div class="card mb-3" style="border-color:${f.severity==='danger'?'var(--danger)':'var(--warning)'}">
+            <div class="flex-between">
+              <div class="flex gap-3 flex-center">
+                <span style="font-size:1.4rem">${f.icon}</span>
+                <div>
+                  <div style="font-weight:600;color:var(--white)">${f.title}</div>
+                  <div class="text-sm text-grey mt-1" style="max-width:580px">${f.desc}</div>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-ghost btn-sm" onclick="toast('Dismissed','default')">Dismiss</button>
+                <button class="btn btn-sm" style="background:var(--danger);color:var(--white)" onclick="toast('Review action logged','danger')">Review</button>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+        <div class="empty-state" style="padding:30px 0">
+          <p style="color:var(--grey-mid);font-size:0.84rem">No other flags at this time.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+window.onload = function() {
+  const stored = sessionStorage.getItem('vv_user');
+  if (!stored) { window.location.href = 'index.html'; return; }
+};
+function showSection(name) {
+  ['overview','users','listings','matches','audit','flags'].forEach(s => {
+    document.getElementById('section-'+s).classList.toggle('hidden', s !== name);
+    const nav = document.getElementById('nav-'+s);
+    if (nav) nav.classList.toggle('active', s === name);
+  });
+}
+</script>
+</body>
+</html>
