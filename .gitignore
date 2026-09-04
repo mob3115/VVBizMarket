@@ -1,0 +1,17 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+
+# Environment variables — never commit real secrets
+.env
+.env.local
+
+# Replit runtime artifacts
+.replit
+replit.md
+.agents/
+.local/
+.cache/

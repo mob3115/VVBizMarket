@@ -1,0 +1,578 @@
+MASTER BUILD PROMPT
+Vision + Values (V+V) Business Marketplace
+Privacy-First, Values-Based M&A Matching Platform
+GLOBAL INSTRUCTIONS TO AI AGENT
+
+You are a senior full-stack architect and security engineer.
+
+You will build a production-grade, privacy-first Progressive Web App that matches business buyers and sellers based on values alignment and transaction compatibility.
+
+You MUST:
+
+Follow secure-by-default principles
+
+Write unit tests for all services
+
+Write integration tests for core workflows
+
+Implement encryption properly
+
+Document all assumptions
+
+Fail build if tests do not pass
+
+Use strict TypeScript
+
+Enforce input validation
+
+Prevent injection attacks
+
+Protect against scraping and enumeration attacks
+
+PHASE 1 — SYSTEM INITIALIZATION
+Step 1.1 — Initialize Monorepo
+
+Create a monorepo structure:
+
+/apps
+  /web (Next.js frontend)
+/services
+  /api (NestJS backend)
+  /chat-service
+  /matching-service
+  /document-service
+/packages
+  /shared-types
+  /auth
+  /security
+  /config
+
+
+Use:
+
+Node 20+
+
+TypeScript strict mode
+
+ESLint + Prettier
+
+Husky pre-commit hooks
+
+Jest + Supertest
+
+Playwright (E2E)
+
+Step 1.2 — Infrastructure as Code
+
+Provision Azure resources using Terraform:
+
+Azure App Service
+
+Azure PostgreSQL
+
+Azure Redis
+
+Azure Blob Storage
+
+Azure Key Vault
+
+Azure Service Bus
+
+Write Terraform validation tests.
+
+PHASE 2 — AUTHENTICATION + SECURITY FOUNDATION
+Step 2.1 — Identity System
+
+Implement:
+
+Email/password login
+
+Argon2 password hashing
+
+JWT access tokens (15 min expiry)
+
+Refresh tokens (rotating, 7 days)
+
+2FA via TOTP (optional)
+
+Email verification required
+
+Unit Tests Required
+
+Password hash verification
+
+JWT expiration enforcement
+
+Refresh token rotation invalidates old token
+
+2FA code validation
+
+Step 2.2 — Role-Based Access Control (RBAC)
+
+Roles:
+
+Buyer
+
+Seller
+
+Dual
+
+Admin
+
+Super Admin
+
+Middleware must:
+
+Enforce role access
+
+Prevent horizontal privilege escalation
+
+Block access to non-owned profiles
+
+Write tests that simulate malicious cross-profile access.
+
+Step 2.3 — Encryption Layer
+
+Implement:
+
+Encryption at Rest
+
+AES-256-GCM for sensitive fields:
+
+email
+
+phone
+
+legal documents
+
+financial uploads
+
+Encryption in Transit
+
+Enforce HTTPS only
+
+HSTS headers
+
+Field-Level Encryption Tests
+
+Ensure plaintext never appears in DB
+
+Attempt decryption with wrong key fails
+
+PHASE 3 — DATA MODEL + DATABASE
+
+Use PostgreSQL with Prisma ORM.
+
+Enable:
+
+Row-level security
+
+pgvector extension for embeddings
+
+Step 3.1 — Create Core Tables
+
+Users
+
+Profiles
+
+SellerListings
+
+BuyerPreferences
+
+Matches
+
+Swipes
+
+Conversations
+
+Messages
+
+NDAs
+
+Documents
+
+Add:
+
+UUID primary keys
+
+Created_at / updated_at
+
+Soft delete flag
+
+Step 3.2 — Data Validation
+
+Use:
+
+Zod for schema validation
+
+Strict DTO validation in API layer
+
+Tests must:
+
+Reject malformed payloads
+
+Reject injection attempts
+
+Reject script tags (XSS)
+
+PHASE 4 — PROFILE + LISTING SYSTEM
+Step 4.1 — Seller Profile Creation
+
+Implement:
+
+Multi-step onboarding
+
+Draft saving
+
+Anonymity level selection (3 tiers)
+
+Unit Tests:
+
+Validate required fields
+
+Enforce numeric constraints
+
+Reject negative financials
+
+Ensure anonymity rules hide fields
+
+Step 4.2 — Buyer Profile Creation
+
+Same as seller but acquisition-focused.
+
+Unit tests:
+
+Validate price ranges
+
+Ensure min <= max
+
+Validate funding source enums
+
+PHASE 5 — MATCHING ENGINE (CORE IP)
+
+This is the critical intelligence layer.
+
+Step 5.1 — Embeddings Generation
+
+Use Azure OpenAI embeddings.
+
+Process:
+
+Combine:
+
+Unique Values
+
+Goal statement
+
+Generate vector
+
+Store in pgvector
+
+Unit tests:
+
+Ensure embeddings saved
+
+Ensure consistent vector dimension
+
+Step 5.2 — Compatibility Scoring Engine
+
+Build scoring service that computes:
+
+score =
+0.30 values_similarity +
+0.15 goal_similarity +
+0.15 price_overlap +
+0.10 industry_match +
+0.10 geo_overlap +
+0.10 funding_compatibility +
+0.10 experience_overlap
+
+
+Tests:
+
+Edge case: zero overlap
+
+Perfect match returns >= 90
+
+Partial price overlap scored proportionally
+
+Ensure no NaN errors
+
+Step 5.3 — Swipe Queue Generator
+
+Generate candidate stack:
+
+Only show compatible matches > threshold 60
+
+No duplicates
+
+No previously swiped profiles
+
+Rate limit 50 swipes per day
+
+Test:
+
+Attempt rapid automated swipes → blocked
+
+Ensure anti-scraping rate limits trigger
+
+PHASE 6 — PRIVACY + NDA GATE SYSTEM
+Step 6.1 — Anonymity Enforcement
+
+Ensure:
+
+Level 1:
+
+No business name
+
+Revenue in range only
+
+No exact location
+
+Level 2:
+
+First name allowed
+
+Industry visible
+
+Revenue band visible
+
+Level 3:
+
+Full reveal (post NDA)
+
+Unit tests:
+
+Attempt to access restricted fields before NDA → fail
+
+Confirm reveal after NDA signing
+
+Step 6.2 — NDA Workflow
+
+Integrate DocuSign API.
+
+Flow:
+
+Seller uploads template OR platform default used
+
+Buyer signs
+
+Webhook confirms signature
+
+Unlock document vault
+
+Integration test:
+
+Simulate webhook callback
+
+Verify vault unlocks
+
+PHASE 7 — SECURE CHAT SYSTEM
+Step 7.1 — WebSocket Implementation
+
+Use:
+
+Socket.IO or native WS
+
+Authenticated handshake
+
+Token verification
+
+Step 7.2 — End-to-End Encryption
+
+Generate conversation symmetric key
+
+Encrypt messages client-side
+
+Store encrypted only
+
+Tests:
+
+Confirm server cannot read plaintext
+
+Tampered message fails decryption
+
+Replay attack prevention
+
+PHASE 8 — DOCUMENT VAULT
+Step 8.1 — Secure Upload
+
+Direct-to-blob upload with signed URLs
+
+Max file size limit
+
+Virus scan hook
+
+Tests:
+
+Upload executable blocked
+
+Attempt access without NDA → blocked
+
+Access logged
+
+PHASE 9 — ANTI-FRAUD + ABUSE PROTECTION
+
+Implement:
+
+IP rate limiting
+
+CAPTCHA on signup
+
+Device fingerprinting
+
+Duplicate image detection (hashing)
+
+Suspicious price anomaly detection
+
+Tests:
+
+Simulate bot signup → blocked
+
+Simulate mass scraping → blocked
+
+PHASE 10 — MONETIZATION
+
+Integrate Stripe:
+
+Listing fee payment
+
+Subscription tiers
+
+Webhook validation
+
+Prevent webhook forgery
+
+Test:
+
+Attempt fake webhook → rejected
+
+Downgrade subscription → feature removed
+
+PHASE 11 — END-TO-END TEST SUITE
+
+Using Playwright:
+
+Test full workflows:
+
+Seller onboarding → swipe → match → NDA → vault unlock
+
+Buyer onboarding → match → chat → NDA sign
+
+Payment upgrade → boosted visibility
+
+All must pass before deploy.
+
+PHASE 12 — SECURITY HARDENING CHECKLIST
+
+Before production deploy:
+
+Enable CSP headers
+
+Enable XSS protection
+
+Enable CSRF tokens
+
+Enable rate limiting
+
+Disable GraphQL introspection in prod
+
+Validate input length limits
+
+Audit logs enabled
+
+Admin actions logged
+
+Enforce secure cookies (HttpOnly, SameSite=Strict)
+
+Run:
+
+OWASP ZAP scan
+
+Dependency vulnerability scan
+
+npm audit clean
+
+Container image scan
+
+PHASE 13 — PERFORMANCE TARGETS
+
+Must support:
+
+10,000 concurrent users
+
+<200ms API response (P95)
+
+<1s swipe response
+
+Chat latency <150ms
+
+Load test using k6.
+
+PHASE 14 — DEPLOYMENT PIPELINE
+
+CI/CD:
+
+GitHub Actions
+
+Run:
+
+Lint
+
+Unit tests
+
+Integration tests
+
+Security scan
+
+Fail pipeline on test failure
+
+Blue/Green deployment
+
+ACCEPTANCE CRITERIA
+
+The build is complete only when:
+
+All unit tests pass
+
+All integration tests pass
+
+NDA gate verified
+
+Encryption verified
+
+No plaintext sensitive data in DB
+
+Performance thresholds met
+
+No critical vulnerabilities
+
+Admin dashboard functional
+
+Anonymity levels enforced
+
+FINAL INSTRUCTION TO AI AGENT
+
+Do NOT:
+
+Store sensitive data in plaintext
+
+Skip writing tests
+
+Skip encryption
+
+Bypass validation
+
+Deploy without security scans
+
+Do:
+
+Log all security-relevant events
+
+Document all architecture decisions
+
+Provide API documentation
+
+Provide database schema export
+
+Provide test coverage report (must exceed 85%)
