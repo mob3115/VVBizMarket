@@ -3,12 +3,12 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { hashPassword, verifyPassword } from "./auth";
 import session from "express-session";
-import connectPgSimple from "connect-pg-simple";
+import MemoryStore from "memorystore";
 import rateLimit from "express-rate-limit";
 import { registerSchema, loginSchema } from "@shared/schema";
 import type { Profile } from "@shared/schema";
 
-const PgStore = connectPgSimple(session);
+const SessionStore = MemoryStore(session);
 
 // ─── Auth middleware ──────────────────────────────────────────────────────────
 
@@ -156,9 +156,8 @@ export async function registerRoutes(
 
   app.use(
     session({
-      store: new PgStore({
-        conString: process.env.DATABASE_URL,
-        createTableIfMissing: true,
+      store: new SessionStore({
+        checkPeriod: 86400000, // prune expired entries every 24h
       }),
       secret: sessionSecret ?? "vv-marketplace-dev-secret",
       resave: false,
