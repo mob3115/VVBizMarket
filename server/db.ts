@@ -6,13 +6,17 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is not set");
 }
 
-// Use a pool size suitable for Supabase's transaction pooler (port 6543)
+// Supabase transaction pooler (port 6543) — optimised for serverless
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 10,
-  idleTimeoutMillis: 30000,
+  max: 3,                      // Low limit for serverless — pooler handles the rest
+  idleTimeoutMillis: 10000,
   connectionTimeoutMillis: 10000,
-  ssl: { rejectUnauthorized: false },
+  ssl: { rejectUnauthorized: false }, // Required for Supabase
+});
+
+pool.on("error", (err) => {
+  console.error("Unexpected pool error:", err);
 });
 
 export const db = drizzle(pool, { schema });

@@ -1,11 +1,16 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
+import { fileURLToPath } from "url";
+import path from "path";
 
-const allowlist = [
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(__dirname, "..");
+
+// Packages to bundle INTO the server output (not externalized)
+// Everything else is treated as external and must be in node_modules
+const BUNDLE_INCLUDE = [
   "@supabase/supabase-js",
-  "axios",
-  "cors",
   "date-fns",
   "drizzle-orm",
   "drizzle-zod",
@@ -14,41 +19,47 @@ const allowlist = [
   "express-session",
   "memorystore",
   "pg",
-  "ws",
   "zod",
   "zod-validation-error",
 ];
 
 async function buildAll() {
-  await rm("dist", { recursive: true, force: true });
+  // Clean dist
+  await rm(path.join(root, "dist"), { recursive: true, force: true });
 
-  console.log("building client...");
+  // 1. Build client (Vite)
+  console.log("▶ Building client...");
   await viteBuild();
+  console.log("✓ Client built");
 
-  console.log("building server...");
-  const pkg = JSON.parse(await readFile("package.json", "utf-8"));
+  // 2. Build server (esbuild → CJS for Vercel)
+  console.log("▶ Building server...");
+  const pkg = JSON.parse(await readFile(path.join(root, "package.json"), "utf-8"));
   const allDeps = [
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.devDependencies || {}),
   ];
-  const externals = allDeps.filter((dep) => !allowlist.includes(dep));
+  const externals = allDeps.filter((dep) => !BUNDLE_INCLUDE.includes(dep));
 
   await esbuild({
-    entryPoints: ["server/index.ts"],
+    entryPoints: [path.join(root, "server/index.ts")],
     platform: "node",
+    target: "node18",
     bundle: true,
     format: "cjs",
-    outfile: "dist/index.cjs",
-    define: {
-      "process.env.NODE_ENV": '"production"',
-    },
-    minify: true,
+    outfile: path.join(root, "dist/index.cjs"),
     external: externals,
+    define: {
+      "import.meta.dirname": "__dirname",
+      "import.meta.url": JSON.stringify("file:///app/server/index.ts"),
+    },
+    minify: false, // Keep readable for easier debugging
     logLevel: "info",
   });
+  console.log("✓ Server built");
 }
 
 buildAll().catch((err) => {
-  console.error(err);
+  console.error("Build failed:", err);
   process.exit(1);
 });

@@ -1,4 +1,6 @@
 // Vercel serverless entry point
-// The compiled server exports a default handler function
-const server = require("../dist/index.cjs");
-module.exports = server.default || server;
+// Express app is compiled to CJS and exported as a handler function
+const mod = require("../dist/index.cjs");
+const handler = mod.default || mod;
+
+module.exports = handler;

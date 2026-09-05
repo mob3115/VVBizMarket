@@ -5,7 +5,7 @@
 
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 
@@ -249,20 +249,33 @@ await section("11. N+1 patterns removed", async () => {
   assert(src.includes("Promise.all"), "getDiscoverCandidates uses Promise.all");
 });
 
-await section("12. Railway deployment files", async () => {
-  const railway = readFileSync(path.join(ROOT, "railway.toml"), "utf8");
-  assert(railway.includes("npm run build"), "railway.toml has build command");
-  assert(railway.includes("npm start"), "railway.toml has start command");
-  assert(railway.includes("/api/health"), "railway.toml references health check");
+await section("12. Vercel deployment files", async () => {
+  const vercelJson = readFileSync(path.join(ROOT, "vercel.json"), "utf8");
+  const vercel = JSON.parse(vercelJson);
+  assert(vercel.buildCommand === "npm run build", "vercel.json has build command");
+  assert(vercel.functions?.["api/index.js"], "vercel.json has api function");
+  assert(Array.isArray(vercel.rewrites), "vercel.json has rewrites");
+  assert(vercel.rewrites.some(r => r.source.includes("/api/")), "vercel.json routes /api to function");
 
-  const nixpacks = readFileSync(path.join(ROOT, "nixpacks.toml"), "utf8");
-  assert(nixpacks.includes("nodejs_22"), "nixpacks.toml pins Node 22");
+  const apiEntry = readFileSync(path.join(ROOT, "api/index.js"), "utf8");
+  assert(apiEntry.includes("dist/index.cjs"), "api/index.js references compiled server");
 
   const env = readFileSync(path.join(ROOT, ".env.example"), "utf8");
   assert(env.includes("DATABASE_URL"), ".env.example has DATABASE_URL");
   assert(env.includes("SESSION_SECRET"), ".env.example has SESSION_SECRET");
-  assert(env.includes("SEED=true"), ".env.example has SEED flag");
+  assert(env.includes("SUPABASE_URL"), ".env.example has SUPABASE_URL");
+  assert(env.includes("SUPABASE_SECRET_KEY"), ".env.example has SUPABASE_SECRET_KEY");
+  assert(env.includes("VITE_SUPABASE_URL"), ".env.example has VITE_SUPABASE_URL");
   assert(env.includes("SEED_PASSWORD"), ".env.example documents SEED_PASSWORD");
+
+  const readme = readFileSync(path.join(ROOT, "README.md"), "utf8");
+  assert(readme.includes("Vercel"), "README.md documents Vercel deployment");
+  assert(readme.includes("Supabase"), "README.md documents Supabase");
+
+  // Railway/Replit files should NOT exist
+  assert(!existsSync(path.join(ROOT, "railway.toml")), "railway.toml removed");
+  assert(!existsSync(path.join(ROOT, "nixpacks.toml")), "nixpacks.toml removed");
+  assert(!existsSync(path.join(ROOT, "replit.md")), "replit.md removed");
 });
 
 await section("13. Rate limiting", async () => {

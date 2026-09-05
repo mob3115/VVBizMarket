@@ -1,113 +1,100 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { serveStatic } from "./static";
 import { createServer } from "http";
 import { seedDatabase } from "./seed";
 
-// Validate required environment variables at startup
-if (!process.env.DATABASE_URL) {
-  console.error("FATAL: DATABASE_URL environment variable is not set.");
-  process.exit(1);
-}
-
-const app = express();
-const httpServer = createServer(app);
-
-declare module "http" {
-  interface IncomingMessage {
-    rawBody: unknown;
+// ─── Startup validation ───────────────────────────────────────────────────────
+const REQUIRED_ENV = ["DATABASE_URL", "SESSION_SECRET", "SUPABASE_URL", "SUPABASE_SECRET_KEY"];
+for (const key of REQUIRED_ENV) {
+  if (!process.env[key]) {
+    console.error(`FATAL: Missing required environment variable: ${key}`);
+    process.exit(1);
   }
 }
 
-app.use(
-  express.json({
-    verify: (req, _res, buf) => {
-      req.rawBody = buf;
-    },
-  }),
-);
+// ─── App setup ────────────────────────────────────────────────────────────────
+const app = express();
 
+app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-export function log(message: string, source = "express") {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-  console.log(`${formattedTime} [${source}] ${message}`);
-}
-
+// Request logger (API routes only)
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
   res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-      log(logLine);
+    if (req.path.startsWith("/api")) {
+      console.log(`${req.method} ${req.path} ${res.statusCode} ${Date.now() - start}ms`);
     }
   });
-
   next();
 });
 
-async function bootstrap() {
+// ─── Bootstrap ────────────────────────────────────────────────────────────────
+let bootstrapPromise: Promise<express.Express> | null = null;
+
+async function bootstrap(): Promise<express.Express> {
+  const httpServer = createServer(app);
   await registerRoutes(httpServer, app);
 
-  try {
-    await seedDatabase();
-  } catch (err) {
-    console.error("Seed error (may be expected if tables don't exist yet):", err);
+  // Seed only when explicitly requested
+  if (process.env.SEED === "true") {
+    try {
+      await seedDatabase();
+    } catch (err) {
+      console.error("Seed error:", err);
+    }
   }
 
-  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-    console.error("Internal Server Error:", err);
+  // Global error handler
+  app.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) return next(err);
-    return res.status(status).json({ message });
+    const status = (err as any)?.status || (err as any)?.statusCode || 500;
+    const message = (err as any)?.message || "Internal Server Error";
+    console.error("Unhandled error:", err);
+    res.status(status).json({ message });
   });
 
-  if (process.env.NODE_ENV === "production") {
+  // Serve static files in production (Vercel serves them directly, this is for Railway fallback)
+  if (process.env.NODE_ENV === "production" && process.env.VERCEL !== "1") {
+    const { serveStatic } = await import("./static");
     serveStatic(app);
-  } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
   }
 
   return app;
 }
 
-// For Vercel — export the Express app as the default export
-let appPromise: Promise<express.Express>;
-
-export default async function handler(req: any, res: any) {
-  if (!appPromise) {
-    appPromise = bootstrap();
+// ─── Vercel export ────────────────────────────────────────────────────────────
+// Vercel calls this function for every request.
+// We lazily bootstrap once and reuse across warm invocations.
+export default async function handler(req: Request, res: Response) {
+  if (!bootstrapPromise) {
+    bootstrapPromise = bootstrap();
   }
-  const expressApp = await appPromise;
-  return expressApp(req, res);
+  const expressApp = await bootstrapPromise;
+  expressApp(req, res);
 }
 
-// For Railway/traditional hosting — start the server directly
+// ─── Traditional server (Railway / local dev) ─────────────────────────────────
 if (process.env.VERCEL !== "1") {
   bootstrap().then(() => {
-    const port = parseInt(process.env.PORT || "5000", 10);
-    httpServer.listen({ port, host: "0.0.0.0", reusePort: true }, () => {
-      log(`serving on port ${port}`);
-    });
+    // Dev mode: use Vite middleware
+    if (process.env.NODE_ENV !== "production") {
+      import("./vite").then(({ setupVite }) => {
+        const httpServer = createServer(app);
+        setupVite(httpServer, app).then(() => {
+          const port = parseInt(process.env.PORT || "5000", 10);
+          httpServer.listen({ port, host: "0.0.0.0" }, () => {
+            console.log(`Dev server running on http://localhost:${port}`);
+          });
+        });
+      });
+    } else {
+      const { serveStatic } = require("./static");
+      serveStatic(app);
+      const port = parseInt(process.env.PORT || "5000", 10);
+      createServer(app).listen({ port, host: "0.0.0.0" }, () => {
+        console.log(`Production server running on port ${port}`);
+      });
+    }
   });
 }

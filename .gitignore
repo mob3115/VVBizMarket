@@ -1,17 +1,44 @@
-node_modules
-dist
-.DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
-# Environment variables — never commit real secrets
+# Build output
+dist/
+build/
+
+# Environment variables — NEVER commit these
 .env
 .env.local
+.env.*.local
 
-# Replit runtime artifacts
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Logs
+*.log
+npm-debug.log*
+
+# Vercel
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+
+# Replit / Railway (no longer used)
 .replit
 replit.md
 .agents/
 .local/
 .cache/
+railway.toml
+nixpacks.toml
