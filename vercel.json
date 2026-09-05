@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm run build",
-  "installCommand": "npm install --include=dev",
+  "installCommand": "npm install",
+  "buildCommand": "npx tsx script/build.ts",
   "functions": {
     "api/index.js": {
       "memory": 1024,
